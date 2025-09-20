@@ -14,7 +14,7 @@ type TestFileInfo struct {
 	Content  string
 }
 
-func TestCalcHash(t *testing.T) {
+func TestCalcHashOfFiles(t *testing.T) {
 	variants := []struct {
 		files       []TestFileInfo
 		resultFiles []string
