@@ -30,14 +30,26 @@ func TestCalcHashOfFiles(t *testing.T) {
 			result:      "3f9974ce06d2aa489d19adcc4c35f23bada79567",
 		},
 	}
-	assertions := require.New(t)
 	for n, variant := range variants {
 		dirName := filepath.Join(t.TempDir(), "v"+strconv.Itoa(n))
-		assertions.NoError(os.Mkdir(dirName, 0750))
+		require.NoError(t, os.Mkdir(dirName, 0750))
 		for _, f := range variant.files {
 			fileName := filepath.Join(dirName, f.FileName)
-			assertions.NoError(os.WriteFile(fileName, []byte(f.Content), 0600))
+			require.NoError(t, os.WriteFile(fileName, []byte(f.Content), 0600))
 		}
-		assertions.Equal(variant.result, CalcHashOfFiles(dirName, variant.resultFiles), n)
+		hash, err := CalcHashOfFiles(dirName, variant.resultFiles)
+		require.NoError(t, err, n)
+		require.Equal(t, variant.result, hash, n)
 	}
+}
+
+func TestCalcHashOfFilesMissingFile(t *testing.T) {
+	_, err := CalcHashOfFiles(t.TempDir(), []string{"nonexistent.go"})
+	require.Error(t, err)
+}
+
+func TestCalcHashOfFilesEmpty(t *testing.T) {
+	result, err := CalcHashOfFiles(t.TempDir(), []string{})
+	require.NoError(t, err)
+	require.Equal(t, "da39a3ee5e6b4b0d3255bfef95601890afd80709", result)
 }

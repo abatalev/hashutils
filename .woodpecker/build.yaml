@@ -2,11 +2,15 @@ when:
   event: [push, pull_request]
 
 steps:
+  lint:
+    image: golang:1.21
+    commands:
+      - go vet ./...
   test:
-    image: golang:1.17
+    image: golang:1.21
     commands:
       - go test ./...
   build:
-    image: golang:1.17
+    image: golang:1.21
     commands:
       - go build ./...

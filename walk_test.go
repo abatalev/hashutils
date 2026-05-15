@@ -10,7 +10,6 @@ import (
 )
 
 func TestWalkDirWithPatterns(t *testing.T) {
-
 	variants := []struct {
 		files       []TestFileInfo
 		patterns    []string
@@ -23,16 +22,44 @@ func TestWalkDirWithPatterns(t *testing.T) {
 			patterns:    []string{"Docker*"},
 			resultFiles: []string{"Dockerfile"},
 		},
+		{
+			files: []TestFileInfo{
+				{FileName: "foo.go", Content: "package foo"},
+				{FileName: "bar.txt", Content: "hello"},
+				{FileName: "baz.go", Content: "package baz"},
+			},
+			patterns:    []string{"*.go"},
+			resultFiles: []string{"foo.go", "baz.go"},
+		},
+		{
+			files: []TestFileInfo{
+				{FileName: "a.go", Content: "package a"},
+			},
+			patterns:    []string{"*.rs"},
+			resultFiles: []string{},
+		},
 	}
-	assertions := require.New(t)
 	for n, variant := range variants {
 		dirName := filepath.Join(t.TempDir(), "v"+strconv.Itoa(n))
-		assertions.NoError(os.Mkdir(dirName, 0750))
+		require.NoError(t, os.Mkdir(dirName, 0750))
 		for _, f := range variant.files {
 			fileName := filepath.Join(dirName, f.FileName)
-			assertions.NoError(os.WriteFile(fileName, []byte(f.Content), 0600))
+			require.NoError(t, os.WriteFile(fileName, []byte(f.Content), 0600))
 		}
-		files := WalkDirWithPatterns(dirName, variant.patterns)
-		assertions.ElementsMatch(variant.resultFiles, files, n)
+		files, err := WalkDirWithPatterns(dirName, variant.patterns)
+		require.NoError(t, err, n)
+		require.ElementsMatch(t, variant.resultFiles, files, n)
 	}
+}
+
+func TestWalkDirWithPatternsNotExists(t *testing.T) {
+	_, err := WalkDirWithPatterns("/nonexistent/path", []string{"*"})
+	require.Error(t, err)
+}
+
+func TestWalkDirWithPatternsEmptyDir(t *testing.T) {
+	dir := t.TempDir()
+	files, err := WalkDirWithPatterns(dir, []string{"*"})
+	require.NoError(t, err)
+	require.Empty(t, files)
 }

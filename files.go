@@ -2,28 +2,34 @@ package hashutils
 
 import (
 	"path/filepath"
+	"strings"
 )
 
-func CalcHashOfFiles(workDir string, files []string) string {
-	return calcHashFiles(calcHashes(workDir, files))
+func CalcHashOfFiles(workDir string, files []string) (string, error) {
+	hashed, err := calcHashes(workDir, files)
+	if err != nil {
+		return "", err
+	}
+	return calcHashFiles(hashed), nil
 }
 
 func calcHashFiles(files []string) string {
-	s := ""
+	var b strings.Builder
 	for _, file := range files {
-		s += file + "\n"
+		b.WriteString(file)
+		b.WriteString("\n")
 	}
-	return CalcHashBytes([]byte(s))
+	return CalcHashBytes([]byte(b.String()))
 }
 
-func calcHashes(workDir string, files []string) []string {
-	filesWithHashes := make([]string, 0)
+func calcHashes(workDir string, files []string) ([]string, error) {
+	filesWithHashes := make([]string, 0, len(files))
 	for _, f := range files {
-		filesWithHashes = appendFileAndHash(filesWithHashes, f, CalcHashFile(filepath.Join(workDir, f)))
+		hash, err := CalcHashFile(filepath.Join(workDir, f))
+		if err != nil {
+			return nil, err
+		}
+		filesWithHashes = append(filesWithHashes, f+" "+hash)
 	}
-	return filesWithHashes
-}
-
-func appendFileAndHash(filesWithHashes []string, f, hash string) []string {
-	return append(filesWithHashes, f+" "+hash)
+	return filesWithHashes, nil
 }

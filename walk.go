@@ -2,7 +2,6 @@ package hashutils
 
 import (
 	"io/fs"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,9 +9,9 @@ import (
 	"github.com/bmatcuk/doublestar"
 )
 
-func WalkDirWithPatterns(workDir string, patters []string) []string {
+func WalkDirWithPatterns(workDir string, patterns []string) ([]string, error) {
 	if _, err := os.Lstat(workDir); err != nil {
-		return []string{}
+		return nil, err
 	}
 
 	if !strings.HasSuffix(workDir, "/") {
@@ -20,26 +19,20 @@ func WalkDirWithPatterns(workDir string, patters []string) []string {
 	}
 	files := make([]string, 0)
 	err := filepath.Walk(workDir, func(path string, info fs.FileInfo, err error) error {
-		// log.Println("@@@@", path, workDir)
 		filename := strings.TrimPrefix(path, workDir)
 		if info.IsDir() {
 			return nil
 		}
-		if walkFunc(filename, patters) {
+		if walkFunc(filename, patterns) {
 			files = append(files, filename)
 		}
 		return nil
 	})
-	if err != nil {
-		// panic("!!!") // TODO remove panic
-		log.Println("ERROR", err)
-		return []string{}
-	}
-	return files
+	return files, err
 }
 
-func walkFunc(filename string, patters []string) bool {
-	for _, p := range patters {
+func walkFunc(filename string, patterns []string) bool {
+	for _, p := range patterns {
 		if x, _ := doublestar.Match(p, filename); x {
 			return true
 		}
