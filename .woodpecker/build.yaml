@@ -5,7 +5,7 @@ steps:
   lint:
     image: golang:1.21
     commands:
-      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.59.1
       - golangci-lint run ./...
   test:
     image: golang:1.21

@@ -1,4 +1,4 @@
-.PHONY: all build test lint coverage clean yamllint rumdl help
+.PHONY: all build test lint coverage clean yamllint rumdl ci help
 
 all: build
 
@@ -24,6 +24,9 @@ rumdl: ## Format Markdown files
 
 clean: ## Remove build artifacts
 	@if [ -f hashutils ]; then rm hashutils; fi
+
+ci: ## Run CI pipeline locally
+	woodpecker exec --backend-engine docker --pipeline-event push --backend-docker-network bridge --repo-path "$$PWD" .woodpecker/build.yaml
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | sort | \
