@@ -5,11 +5,17 @@ steps:
   lint:
     image: golang:1.21
     commands:
-      - go vet ./...
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+      - golangci-lint run ./...
   test:
     image: golang:1.21
     commands:
       - go test ./...
+  coverage:
+    image: golang:1.21
+    commands:
+      - go test -coverprofile=coverage.out ./...
+      - go tool cover -func=coverage.out | awk '/total:/ {pct=$NF; sub(/%/, "", pct); if (pct+0 < 80) {print "coverage below 80%: " pct; exit 1} else {print "coverage: " pct "%"}}'
   build:
     image: golang:1.21
     commands:
